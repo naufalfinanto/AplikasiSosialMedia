@@ -7,9 +7,12 @@ import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.google.android.gms.common.internal.Objects
 import com.google.firebase.auth.FirebaseAuth
@@ -76,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         //set tampilan main activity
-        override fun getView(p0: Int, p1: View?, p2: ViewGroup?): View {
+        override fun getView(p0: Int, p1: View?, p2: ViewGroup?) {
             var mypost = listNotesAdapter[p0]
             if (mypost.postPersonUID.equals("add")){
                 //Code untuk tambahkan postingan
@@ -248,8 +251,79 @@ class MainActivity : AppCompatActivity() {
         val uploadTask = imageRef.putBytes(datar)
 
         //Upload gambar
+        uploadTask.addOnSuccessListener { taskSnapshot ->
+            var tokens = FirebaseStorage.getInstance().equals("downloadTokens")
+            DownloadURL = "https:firebasestorage.googleapis.com/o/imagePost24f" + SplitString(myemail!!) + "." +
+                    formattanggal.format(dataobject) + ".jpg" + "?alt=media&token" + tokens.toString()
+
+            //Tampilkan Post
+            ListPost.removeAt(0)
+            adapter!!.notifyDataSetChanged()
+
+            //JIKA GAGAL
+        }.addOnFailureListener{Toast.makeText(applicationContext, "Failed to upload", Toast.LENGTH_LONG).show()}
     }
+  }
+
+  //Function untuk menghapus @gmail.com
+  fun SplitString(email: String): String{
+      val split = email.split("@")
+      return split[0]
+  }
+
+  //Load Postingan
+  fun LoadPost(){
+      myRef.child("posts")
+          .addValueEventListener(object : ValueEventListener{
+              override fun onDataChange(p0: DataSnapshot) {
+                  try {
+                      ListPost.clear()
+                      ListPost.add(DataPostingan("0", "him", "url", "add"))
+                      ListPost.add(DataPostingan("0", "him", "url", "ada"))
+                      var td = dataSnapshot!!.value as HashMap<String, Any>
+                      for(key in td.keys){
+                          var post = td[key] as HashMap<String, Any>
+                          ListPost.add(
+                              DataPostingan(
+                                  key
+                                  , post["text"] as String
+                                  , post["postImage"] as String
+                                  , post["userUID"] as String
+                              )
+                          )
+                      }
+
+                      adapter!!.notifyDataSetChanged()
+                  }catch (ex: Exception)
+                       {
+
+                       }
+              }
+
+              override fun onCancelled(p0: DatabaseError) {
+              }
+        } )
+    }
+
+      //Tampilkan menu item
+      override fun onCreateOptionsMenu(menu: Menu?): Boolean{
+          menuInflater.inflate(R.menu.menu, menu)
+          return super.onCreateOptionMenu(menu)
+      }
+
+      //Event on click pada menu item
+      override fun onOptionsItemSelected(menuItem: MenuItem?): Boolean{
+        if (item != null){
+            when (item.itemId){ R.id.logout -> {
+                mAuth!!.signOut()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
         }
+      }
+          return super.onOptionsItemSelected(item)
+     }
+    }}
 
 
 

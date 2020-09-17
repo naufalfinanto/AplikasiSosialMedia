@@ -43,7 +43,7 @@ class LoginActivity : AppCompatActivity() {
 
     //LoadPost berdasarkan email dan uid(unik ID)
     fun LoadPost() {
-        var currentUser = mAuth!!.currentUser
+        val currentUser = mAuth!!.currentUser
         if(currentUser!=null) {
             //intent ke MainActivity.. Lalu pada MainActivity kita akan>>
             var intent = Intent(this, MainActivity::class.java)
